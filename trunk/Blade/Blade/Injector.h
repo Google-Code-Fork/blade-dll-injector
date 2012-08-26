@@ -14,8 +14,10 @@ public:
 	Injector(void);
 
 	// the DLL file must be in Environment::CurrentDirectory
+
 	bool Inject(String^ processName, String^ dllName);
 	bool Eject(String^ processName, String^ dllName);
+	bool CallExport(String^ processName, String^ dllName, String^ exportName);
 	String^ GetLastErrorMessage();
 };
 

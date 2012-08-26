@@ -11,7 +11,11 @@ int main()
 
 	injector->Inject("iexplore", "Poison.dll");
 
-	Thread::Sleep(5000);
+	Thread::Sleep(1000);
+
+	injector->CallExport("iexplore", "Poison.dll", "Initialize");
+
+	Thread::Sleep(1000);
 
 	injector->Eject("iexplore", "Poison.dll");
 

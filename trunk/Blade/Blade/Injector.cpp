@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include <tlhelp32.h>
 #include "Injector.h"
 
 #using <System.dll>
@@ -14,7 +15,7 @@ Injector::Injector(void)
 String^ Injector::GetLastErrorMessage() 
 {
 	LPVOID lpMsgBuf;
-    DWORD dw = GetLastError(); 
+	DWORD dw = GetLastError(); 
 
     FormatMessage(
         FORMAT_MESSAGE_ALLOCATE_BUFFER | 
@@ -30,18 +31,12 @@ String^ Injector::GetLastErrorMessage()
 	return Marshal:: PtrToStringUni(ptr);
 }
 
-bool Injector::Eject(String^ processName, String^ dllName)
+bool Injector::CallExport(String^ processName, String^ dllName, String^ exportName) 
 {
 	String^ dllPath = Environment::CurrentDirectory + "\\" + dllName;
 	array<Process^>^ processes = Process::GetProcessesByName(processName);
 
-	Int32 processId = 0;
-	if (processes->Length > 0)
-	{
-		processId = processes[0]->Id;
-		Logger::Instance->Log("Process id of " +  processName + " is " + processId + ".");
-	}
-	else
+	if (processes->Length < 1)
 	{
 		Logger::Instance->Log("No processes named " +  processName + " found.");
 		return false;
@@ -51,7 +46,72 @@ bool Injector::Eject(String^ processName, String^ dllName)
 	System::Collections::IEnumerator^ module = processes[0]->Modules->GetEnumerator();
 	while (module->MoveNext())
 	{
-		Logger::Instance->Log("Loaded module " + dynamic_cast<ProcessModule^>(module->Current)->FileName  + ".");
+		Logger::Instance->Log("Loaded module " + static_cast<ProcessModule^>(module->Current)->FileName  + ".");
+
+		if (dllPath == static_cast<ProcessModule^>(module->Current)->FileName)
+		{
+			Logger::Instance->Log("DLL " + dllPath + " found.");
+			processModule = static_cast<ProcessModule^>(module->Current);
+			break;
+		}
+	}
+
+	if (processModule == nullptr)
+	{
+		Logger::Instance->Log("No DLL " + dllPath + " found. Nothing to do.");
+		return false;
+	}
+
+	Logger::Instance->Log("Openning process.");
+	hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, processes[0]->Id);
+		
+	if (hProcess == NULL)
+	{
+		Logger::Instance->Log("Error while openning process with message '" + GetLastErrorMessage() + "'.");
+		return false;
+	}
+
+	HMODULE hLoaded = LoadLibraryEx(reinterpret_cast<LPCWSTR>(Marshal::StringToHGlobalUni(dllPath).ToPointer()), nullptr, DONT_RESOLVE_DLL_REFERENCES);
+
+	FARPROC localExport = GetProcAddress(hLoaded, reinterpret_cast<LPCSTR>(Marshal::StringToHGlobalAnsi(exportName).ToPointer()));
+	LONG_PTR offset = reinterpret_cast<DWORD_PTR>(localExport) - reinterpret_cast<DWORD_PTR>(hLoaded);
+
+	FreeLibrary(hLoaded);
+
+	Logger::Instance->Log("Calling export.");
+	hRemoteThread = CreateRemoteThread(hProcess, 0, 0, (LPTHREAD_START_ROUTINE)(reinterpret_cast<DWORD_PTR>(processModule->BaseAddress.ToPointer()) + offset), 0, 0, 0);
+
+	if (hRemoteThread == NULL)
+	{
+		Logger::Instance->Log("Error while calling export with message '" + GetLastErrorMessage() + "'.");
+		return false;
+	}
+
+	Logger::Instance->Log("Waiting.");
+	WaitForSingleObject(hRemoteThread, INFINITE);
+
+	Logger::Instance->Log("Closing.");
+	CloseHandle(hProcess);
+
+	return true;
+}
+
+bool Injector::Eject(String^ processName, String^ dllName)
+{
+	String^ dllPath = Environment::CurrentDirectory + "\\" + dllName;
+	array<Process^>^ processes = Process::GetProcessesByName(processName);
+
+	if (processes->Length < 1)
+	{
+		Logger::Instance->Log("No processes named " +  processName + " found.");
+		return false;
+	}
+
+	ProcessModule^ processModule = nullptr;
+	System::Collections::IEnumerator^ module = processes[0]->Modules->GetEnumerator();
+	while (module->MoveNext())
+	{
+		Logger::Instance->Log("Loaded module " + static_cast<ProcessModule^>(module->Current)->FileName  + ".");
 
 		if (dllPath == static_cast<ProcessModule^>(module->Current)->FileName)
 		{
@@ -67,7 +127,7 @@ bool Injector::Eject(String^ processName, String^ dllName)
 	}
 
 	Logger::Instance->Log("Openning process.");
-	hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, processId);
+	hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, processes[0]->Id);
 		
 	if (hProcess == NULL)
 	{
@@ -89,6 +149,8 @@ bool Injector::Eject(String^ processName, String^ dllName)
 
 	Logger::Instance->Log("Closing.");
 	CloseHandle(hProcess);
+
+	return true;
 }
 
 bool Injector::Inject(String^ processName, String^ dllName) 
@@ -164,5 +226,5 @@ bool Injector::Inject(String^ processName, String^ dllName)
 	Logger::Instance->Log("Closing.");
 	CloseHandle(hProcess);
 
-	return false;
+	return true;
 }
