@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Blade", "Blade\Blade.vcxproj", "{F0382E02-42F0-4762-B26B-2C51CE408F05}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Poison", "..\Poison\Poison\Poison.vcxproj", "{CE0D360F-F3C1-4A2E-AF03-0472826DB675}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Poison", "Poison\Poison\Poison.vcxproj", "{CE0D360F-F3C1-4A2E-AF03-0472826DB675}"
 EndProject
 Global
 	GlobalSection(SubversionScc) = preSolution
