@@ -62,12 +62,12 @@ bool Injector::CallExport(String^ processName, String^ dllName, String^ exportNa
 		return false;
 	}
 
-	Logger::Instance->Log("Openning process.");
+	Logger::Instance->Log("Opening process.");
 	hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, processes[0]->Id);
 		
 	if (hProcess == NULL)
 	{
-		Logger::Instance->Log("Error while openning process with message '" + GetLastErrorMessage() + "'.");
+		Logger::Instance->Log("Error while opening process with message '" + GetLastErrorMessage() + "'.");
 		return false;
 	}
 
@@ -126,12 +126,12 @@ bool Injector::Eject(String^ processName, String^ dllName)
 		return false;
 	}
 
-	Logger::Instance->Log("Openning process.");
+	Logger::Instance->Log("Opening process.");
 	hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, processes[0]->Id);
 		
 	if (hProcess == NULL)
 	{
-		Logger::Instance->Log("Error while openning process with message '" + GetLastErrorMessage() + "'.");
+		Logger::Instance->Log("Error while opening process with message '" + GetLastErrorMessage() + "'.");
 		return false;
 	}
 
@@ -183,12 +183,12 @@ bool Injector::Inject(String^ processName, String^ dllName)
 		}
 	} 
 
-	Logger::Instance->Log("Openning process.");
+	Logger::Instance->Log("Opening process.");
 	hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, processId);
 
 	if (hProcess == NULL)
 	{
-		Logger::Instance->Log("Error while openning process with message '" + GetLastErrorMessage() + "'.");
+		Logger::Instance->Log("Error while opening process with message '" + GetLastErrorMessage() + "'.");
 		return false;
 	}
 
