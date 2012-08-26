@@ -1,6 +1,7 @@
-#using <System.dll>
 #include <Windows.h>
 #include "Injector.h"
+
+#using <System.dll>
 
 using namespace System;
 using namespace System::Diagnostics;
@@ -46,7 +47,7 @@ bool Injector::Eject(String^ processName, String^ dllName)
 		return false;
 	}
 
-	ProcessModule^ processModule;
+	ProcessModule^ processModule = nullptr;
 	System::Collections::IEnumerator^ module = processes[0]->Modules->GetEnumerator();
 	while (module->MoveNext())
 	{
@@ -57,6 +58,12 @@ bool Injector::Eject(String^ processName, String^ dllName)
 			Logger::Instance->Log("DLL " + dllPath + " found. Will remove it.");
 			processModule = static_cast<ProcessModule^>(module->Current);
 		}
+	}
+
+	if (processModule == nullptr)
+	{
+		Logger::Instance->Log("No DLL " + dllPath + " found. Nothing to do.");
+		return false;
 	}
 
 	Logger::Instance->Log("Openning process.");
