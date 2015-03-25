@@ -1,0 +1,1 @@
+I just started learning C++/CLI and created this application in order to learn the Windows API. Please leave comments on it and tell me what is wrong about the code in sense of coding style, exception handling and efficiency.
